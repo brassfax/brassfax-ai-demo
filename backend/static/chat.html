@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f9f9f9; }
+    .header { background: #2E3A59; color: #fff; padding: 12px; text-align: center; font-weight: bold; }
+    .messages { padding: 10px; height: 470px; overflow-y: auto; background: #fff; }
+    .input-area { display: flex; border-top: 1px solid #ddd; padding: 10px; background: #f2f2f2; }
+    input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    button { margin-left: 10px; padding: 10px 20px; background: #2E3A59; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+    .user { text-align: right; margin-bottom: 8px; }
+    .ai { text-align: left; margin-bottom: 8px; color: #333; }
+  </style>
+</head>
+<body>
+
+  <div class="header">Brass Fax AI Assistant</div>
+  <div class="messages" id="messages"></div>
+  <div class="input-area">
+    <input type="text" id="userInput" placeholder="Ask a question...">
+    <button onclick="send()">Send</button>
+  </div>
+
+<script>
+const clientId = "brassfax_internal";
+const apiUrl = "https://brassfax-ai-demo-production.up.railway.app/query";
+
+function appendMessage(role, text) {
+  const msgDiv = document.getElementById("messages");
+  const message = document.createElement("div");
+  message.className = role;
+  message.textContent = text;
+  msgDiv.appendChild(message);
+  msgDiv.scrollTop = msgDiv.scrollHeight;
+}
+
+async function send() {
+  const input = document.getElementById("userInput");
+  const question = input.value.trim();
+  if (!question) return;
+  appendMessage("user", question);
+  input.value = "";
+
+  try {
+    const res = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ client_id: clientId, question: question })
+    });
+    const data = await res.json();
+    appendMessage("ai", data.answer);
+  } catch {
+    appendMessage("ai", "Sorry, there was an error.");
+  }
+}
+</script>
+
+</body>
+</html>
