@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Brass Fax AI Assistant</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9f9f9; }
+    .chat-container { max-width: 400px; margin: 50px auto; background: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; }
+    .chat-header { background: #2E3A59; color: #fff; padding: 15px; text-align: center; font-weight: bold; }
+    .chat-messages { padding: 15px; height: 400px; overflow-y: auto; border-bottom: 1px solid #eee; }
+    .chat-input { display: flex; padding: 10px; }
+    .chat-input input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    .chat-input button { margin-left: 10px; padding: 10px 20px; background: #2E3A59; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+    .user { text-align: right; margin-bottom: 10px; }
+    .ai { text-align: left; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">Brass Fax AI Assistant</div>
+    <div class="chat-messages" id="messages"></div>
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Type your question...">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+<script>
+const clientId = "brassfax_internal";
+const apiUrl = "http://localhost:8000/query";
+
+function appendMessage(sender, text) {
+  const msgDiv = document.getElementById("messages");
+  const message = document.createElement("div");
+  message.className = sender;
+  message.innerText = text;
+  msgDiv.appendChild(message);
+  msgDiv.scrollTop = msgDiv.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById("userInput");
+  const question = input.value.trim();
+  if (!question) return;
+  appendMessage("user", question);
+  input.value = "";
+  
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ client_id: clientId, question: question })
+    });
+
+    const data = await response.json();
+    appendMessage("ai", data.answer);
+  } catch (err) {
+    appendMessage("ai", "Sorry, there was an error.");
+  }
+}
+</script>
+</body>
+</html>

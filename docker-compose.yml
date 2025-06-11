@@ -1,0 +1,25 @@
+# docker-compose.yml
+version: '3.9'
+
+services:
+  chromadb:
+    image: chromadb/chroma
+    container_name: chromadb
+    volumes:
+      - ./data:/chroma/chroma
+    ports:
+      - "8001:8000"
+  
+  brassfax-backend:
+    build: .
+    container_name: brassfax-backend
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - chromadb
+    volumes:
+      - ./backend:/app/backend
+      - ./data:/app/data
+      - .env:/app/.env
