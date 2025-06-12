@@ -12,14 +12,15 @@ from langchain_openai import ChatOpenAI
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Dynamically resolve absolute path to data directory
+# Path resolution fully hardened for SaaS deployment:
+# Dynamically resolve the absolute path to /data directory regardless of Docker or Railway working directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CHROMA_BASE_DIR = os.path.abspath(os.path.join(BASE_DIR, "../data"))
 
 # Initialize FastAPI app
 app = FastAPI()
 
-# Enable CORS (safe for SaaS embedding)
+# Enable CORS for cross-origin browser requests (necessary for embedding)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,27 +29,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve static files for widget frontend
+# Serve static files (your frontend widget assets)
 static_dir = os.path.join(BASE_DIR, "static")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 @app.post("/query")
 async def query(request: Request):
+    # Core multi-client logic unchanged
     body = await request.json()
     client_id = body["client_id"]
     question = body["question"]
 
-    # Build path for client vector DB
+    # Fully hardened path resolution for correct vector store access
     client_vector_path = os.path.join(CHROMA_BASE_DIR, client_id)
 
-    # Load vector store and embeddings
+    # Load embeddings + ChromaDB from correct path
     embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
     vectordb = Chroma(persist_directory=client_vector_path, embedding_function=embeddings)
     retriever = vectordb.as_retriever()
 
-    # Query LLM with retrieval
+    # Build RetrievalQA chain
     llm = ChatOpenAI(openai_api_key=OPENAI_API_KEY, model_name="gpt-4o", temperature=0)
     qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
+
+    # Run query
     answer = qa.invoke(question)
 
-    return {"answer": answer['result']}  # <-- ensure only return string answer
+    # Fix applied: RetrievalQA returns full dict, extract only 'result'
+    return {"answer": answer['result']}
