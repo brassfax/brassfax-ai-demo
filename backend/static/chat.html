@@ -2,7 +2,13 @@
 <html>
 <head>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f9f9f9; }
+    html, body {
+      background: white;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
     .header { background: #2E3A59; color: #fff; padding: 12px; text-align: center; font-weight: bold; }
     .messages { padding: 10px; height: 470px; overflow-y: auto; background: #fff; }
     .input-area { display: flex; border-top: 1px solid #ddd; padding: 10px; background: #f2f2f2; }
@@ -14,6 +20,11 @@
 </head>
 <body>
 
+  <!-- Fallback message if rendering fails -->
+  <div style="padding:20px;color:red;display:none;" id="fallbackMessage">
+    If you see this message, something failed while loading the AI chat.
+  </div>
+
   <div class="header">Brass Fax AI Assistant</div>
   <div class="messages" id="messages"></div>
   <div class="input-area">
@@ -24,6 +35,9 @@
 <script>
 const clientId = "brassfax_internal";
 const apiUrl = "https://brassfax-ai-demo-production.up.railway.app/query";
+
+// Show fallback only if script fails badly
+document.getElementById("fallbackMessage").style.display = "none";
 
 function appendMessage(role, text) {
   const msgDiv = document.getElementById("messages");
@@ -50,7 +64,7 @@ async function send() {
     const data = await res.json();
     appendMessage("ai", data.answer);
   } catch {
-    appendMessage("ai", "Sorry, there was an error.");
+    appendMessage("ai", "Sorry, there was an error connecting to Brass Fax AI.");
   }
 }
 </script>
