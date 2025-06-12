@@ -47,4 +47,5 @@ async def query(request: Request):
     qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
     answer = qa.invoke(question)
 
-    return {"answer": answer}
+    return {"answer": answer['result']}
+
